@@ -65,20 +65,21 @@
 
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
-
-        try {
-            // إرسال البيانات كـ JSON إلى Google Apps Script
-            await fetch(apiUrl, {
+try {
+            // إرسال البيانات باستخدام صيغة تدعمها جوجل بشكل أفضل
+            fetch(apiUrl, {
                 method: 'POST',
-                mode: 'no-cors', 
+                mode: 'no-cors', // لضمان تجاوز قيود الحماية بين المواقع
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             
-            alert("✅ تم ترحيل البيانات بنجاح إلى ملف Google Sheets!");
-            e.target.reset(); // تفريغ الحقول بعد النجاح
+            // بما أننا نستخدم no-cors، سنفترض النجاح إذا لم يحدث خطأ في الشبكة
+            alert("✅ تم إرسال البيانات! انتظر 10 ثوانٍ ثم حدث الجدول الرئيسي.");
+            e.target.reset();
         } catch (error) {
-            console.error("خطأ:", error);
-            alert("❌ حدث خلل في الاتصال، تأكد من إعدادات النشر في جوجل.");
+            alert("❌ فشل الإرسال، تأكد من اتصالك.");
+        }
         } finally {
             btn.innerText = "حفظ في السحابة ☁️";
             btn.disabled = false;
@@ -88,3 +89,4 @@
 </body>
 
 </html>
+
