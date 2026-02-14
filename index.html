@@ -3,123 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>موقعي المحدث لحظياً</title>
+    <title>إدارة الموظفين - الاستعلام</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 20px; 
-            background-color: #f4f7f6;
-            color: #333;
-        }
-        h2 { color: #2c3e50; text-align: center; }
-        .container {
-            max-width: 900px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        /* تنسيق الأزرار العلوي */
-        .actions {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .btn-refresh { background-color: #3498db; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .search-box { margin-bottom: 20px; display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .actions { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; color: white; font-weight: bold; }
         .btn-add { background-color: #8e44ad; }
-        .btn:hover { opacity: 0.8; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .btn-refresh { background-color: #3498db; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background-color: #4CAF50; color: white; font-weight: bold; }
+        th { background-color: #4CAF50; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f1f1f1; }
-        .loading { font-weight: bold; color: #e67e22; text-align: center; padding: 20px; }
+        .loading { text-align: center; padding: 20px; font-weight: bold; color: #e67e22; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>📊 نظام إدارة الموظفين</h2>
-        
-        <div class="actions">
-            <button class="btn btn-refresh" onclick="fetchData()">تحديث البيانات 🔄</button>
-            <a href="add-employee.html" class="btn btn-add">➕ إضافة سجل جديد</a>
-        </div>
-
-        <div id="status" class="loading">جاري جلب أحدث البيانات من جوجل...</div>
-        
-        <table id="myTable" style="display:none;">
-            <thead>
-                <tr id="tableHeader"></tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+<div class="container">
+    <h2>🔍 استعلام بيانات الموظفين</h2>
+    
+    <div class="search-box">
+        <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="ابحث برقم الموظف أو الاسم...">
     </div>
 
-    <script>
-        const apiUrl = 'https://script.google.com/macros/s/AKfycbzDv7kIcIb1CJcmJZOtMHarBnfDzMEJcdKOePH-Xu2d9cY0FDXOMf0onJdyGUxk1OhvEg/exec';
+    <div class="actions">
+        <button class="btn btn-refresh" onclick="fetchData()">تحديث القائمة 🔄</button>
+        <a href="add-employee.html" class="btn btn-add">➕ إضافة موظف جديد</a>
+    </div>
 
-        async function fetchData() {
-            document.getElementById('status').style.display = 'block';
-            document.getElementById('status').innerText = "جاري التحديث...";
-            document.getElementById('myTable').style.display = 'none';
+    <div id="status" class="loading">جاري جلب البيانات...</div>
+    
+    <table id="myTable" style="display:none;">
+        <thead id="tableHeader"></thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
 
-            try {
-                const response = await fetch(apiUrl + '?cachebuster=' + new Date().getTime());
-                const data = await response.json();
+<script>
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbzDv7kIcIb1CJcmJZOtMHarBnfDzMEJcdKOePH-Xu2d9cY0FDXOMf0onJdyGUxk1OhvEg/exec';
+    let allData = [];
 
-                if (data.length === 0) {
-                    document.getElementById('status').innerText = "الجدول فارغ أو لا توجد بيانات.";
-                    return;
-                }
-
-                const tableHeader = document.getElementById('tableHeader');
-                const tableBody = document.getElementById('tableBody');
-
-                tableHeader.innerHTML = "";
-                tableBody.innerHTML = "";
-
-                const keys = Object.keys(data[0]);
-                keys.forEach(key => {
-                    let th = document.createElement('th');
-                    th.innerText = key;
-                    tableHeader.appendChild(th);
-                });
-
-                data.forEach(row => {
-                    let tr = document.createElement('tr');
-                    keys.forEach(key => {
-                        let td = document.createElement('td');
-                        td.innerText = row[key] || "-";
-                        tr.appendChild(td);
-                    });
-                    tableBody.appendChild(tr);
-                });
-
-                document.getElementById('status').style.display = 'none';
-                document.getElementById('myTable').style.display = 'table';
-
-            } catch (error) {
-                console.error("خطأ في جلب البيانات:", error);
-                document.getElementById('status').innerText = "فشل في التحديث.";
-                document.getElementById('status').style.color = "red";
-            }
+    async function fetchData() {
+        document.getElementById('status').style.display = 'block';
+        try {
+            const response = await fetch(apiUrl + '?t=' + new Date().getTime());
+            allData = await response.json();
+            displayData(allData);
+        } catch (error) {
+            document.getElementById('status').innerText = "خطأ في الاتصال!";
         }
-        fetchData();
-    </script>
+    }
+
+    function displayData(data) {
+        const header = document.getElementById('tableHeader');
+        const body = document.getElementById('tableBody');
+        header.innerHTML = ""; body.innerHTML = "";
+
+        if (data.length > 0) {
+            const keys = Object.keys(data[0]);
+            let headerRow = "<tr>";
+            keys.forEach(key => headerRow += `<th>${key}</th>`);
+            header.innerHTML = headerRow + "</tr>";
+
+            data.forEach(row => {
+                let tr = "<tr>";
+                keys.forEach(key => tr += `<td>${row[key] || "-"}</td>`);
+                body.innerHTML += tr + "</tr>";
+            });
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('myTable').style.display = 'table';
+        }
+    }
+
+    function searchTable() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let rows = document.getElementById("tableBody").getElementsByTagName("tr");
+
+        for (let row of rows) {
+            let text = row.textContent.toLowerCase();
+            row.style.display = text.includes(input) ? "" : "none";
+        }
+    }
+
+    fetchData();
+</script>
 </body>
 </html>
-
