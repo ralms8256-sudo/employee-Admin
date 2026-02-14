@@ -5,17 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>موقعي المحدث لحظياً</title>
     <style>
-        /* تصميم الجدول والمظهر العام */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 20px; 
             background-color: #f4f7f6;
             color: #333;
         }
-        h2 {
-            color: #2c3e50;
-            text-align: center;
-        }
+        h2 { color: #2c3e50; text-align: center; }
         .container {
             max-width: 900px;
             margin: auto;
@@ -24,50 +20,44 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 20px; 
+        /* تنسيق الأزرار العلوي */
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
-        th, td { 
-            border: 1px solid #ddd; 
-            padding: 12px; 
-            text-align: center; 
-        }
-        th { 
-            background-color: #4CAF50; 
-            color: white; 
-            font-weight: bold;
-        }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f1f1f1; }
-        
-        .loading { 
-            font-weight: bold; 
-            color: #e67e22; 
-            text-align: center;
-            padding: 20px;
-        }
-        .btn-refresh {
-            display: block;
-            margin: 10px auto;
+        .btn {
             padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            display: inline-block;
         }
-        .btn-refresh:hover { background-color: #2980b9; }
+        .btn-refresh { background-color: #3498db; }
+        .btn-add { background-color: #8e44ad; }
+        .btn:hover { opacity: 0.8; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background-color: #4CAF50; color: white; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        .loading { font-weight: bold; color: #e67e22; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>📊 جدول البيانات المباشر</h2>
+        <h2>📊 نظام إدارة الموظفين</h2>
         
-        <button class="btn-refresh" onclick="fetchData()">تحديث البيانات الآن 🔄</button>
+        <div class="actions">
+            <button class="btn btn-refresh" onclick="fetchData()">تحديث البيانات 🔄</button>
+            <a href="add-employee.html" class="btn btn-add">➕ إضافة سجل جديد</a>
+        </div>
 
         <div id="status" class="loading">جاري جلب أحدث البيانات من جوجل...</div>
         
@@ -80,17 +70,14 @@
     </div>
 
     <script>
-        // الرابط الخاص بك من Google Apps Script
         const apiUrl = 'https://script.google.com/macros/s/AKfycbxXur1ASanFOuc9txw_Tg5wXYddvLXjZVeUBQIk1GX8nQptRake7ZpzDtahGtDtCswESA/exec';
 
         async function fetchData() {
-            // إظهار رسالة التحميل وإخفاء الجدول مؤقتاً عند التحديث
             document.getElementById('status').style.display = 'block';
             document.getElementById('status').innerText = "جاري التحديث...";
             document.getElementById('myTable').style.display = 'none';
 
             try {
-                // إضافة كسر الكاش (Cache Buster) لضمان جلب بيانات جديدة
                 const response = await fetch(apiUrl + '?cachebuster=' + new Date().getTime());
                 const data = await response.json();
 
@@ -102,11 +89,9 @@
                 const tableHeader = document.getElementById('tableHeader');
                 const tableBody = document.getElementById('tableBody');
 
-                // مسح محتوى الجدول القديم قبل إضافة الجديد
                 tableHeader.innerHTML = "";
                 tableBody.innerHTML = "";
 
-                // 1. إنشاء العناوين تلقائياً بناءً على مفاتيح أول كائن في المصفوفة
                 const keys = Object.keys(data[0]);
                 keys.forEach(key => {
                     let th = document.createElement('th');
@@ -114,29 +99,25 @@
                     tableHeader.appendChild(th);
                 });
 
-                // 2. تعبئة الصفوف بالبيانات
                 data.forEach(row => {
                     let tr = document.createElement('tr');
                     keys.forEach(key => {
                         let td = document.createElement('td');
-                        td.innerText = row[key] || "-"; // وضع شرطة إذا كانت الخلية فارغة
+                        td.innerText = row[key] || "-";
                         tr.appendChild(td);
                     });
                     tableBody.appendChild(tr);
                 });
 
-                // إخفاء رسالة التحميل وإظهار الجدول المحدث
                 document.getElementById('status').style.display = 'none';
                 document.getElementById('myTable').style.display = 'table';
 
             } catch (error) {
                 console.error("خطأ في جلب البيانات:", error);
-                document.getElementById('status').innerText = "فشل في التحديث. تأكد من اتصال الإنترنت أو إعدادات النشر.";
+                document.getElementById('status').innerText = "فشل في التحديث.";
                 document.getElementById('status').style.color = "red";
             }
         }
-
-        // تشغيل الدالة تلقائياً عند فتح الصفحة لأول مرة
         fetchData();
     </script>
 </body>
